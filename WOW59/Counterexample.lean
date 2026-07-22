@@ -195,8 +195,7 @@ private lemma counterG_residue : residue counterG = 10 := by
   rw [counterG_degreeSequence]
   rw [residueAux, hhStep0, residueAux, hhStep1, residueAux, hhStep2,
     residueAux, hhStep3, residueAux, hhStep4, residueAux, hhStep5,
-    residueAux, hhStep6, residueAux, hhStep7, residueAux]
-  norm_num
+    residueAux, hhStep6, residueAux, hhStep7, residueAux] <;> norm_num
 private lemma counterG_b_ge : (17 : ℝ) ≤ counterG.b := by
   unfold b
   suffices h : 17 ≤ largestInducedBipartiteSubgraphSize counterG by
