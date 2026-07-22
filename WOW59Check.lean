@@ -1,0 +1,6 @@
+import WOW59.Counterexample
+
+#print WrittenOnTheWallII.GraphConjecture59Counterexample.counterexample_conjecture59
+#print WrittenOnTheWallII.GraphConjecture59Counterexample.conjecture59_false
+#print axioms WrittenOnTheWallII.GraphConjecture59Counterexample.counterexample_conjecture59
+#print axioms WrittenOnTheWallII.GraphConjecture59Counterexample.conjecture59_false
