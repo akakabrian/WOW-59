@@ -13,11 +13,11 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - name: Download and print Lean diagnostics
+      - name: Download and print successful Lean audit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api repos/akakabrian/WOW-59/actions/artifacts/8523023609/zip > wow59-log.zip
+          gh api repos/akakabrian/WOW-59/actions/artifacts/8523202965/zip > wow59-log.zip
           unzip -p wow59-log.zip lean-ci.log > lean-ci.log
-          echo '=== LEAN DIAGNOSTICS ==='
-          grep -nE -A18 -B6 'error:|Tactic `decide` failed|unsolved goals|failed to synthesize|type mismatch|unknown identifier|linarith failed|declaration uses|warning:|EXIT_STATUS|Lean\.ofReduceBool|Lean\.trustCompiler|sorryAx' lean-ci.log || tail -n 180 lean-ci.log
+          echo '=== FINAL WOWII 59 LEAN AUDIT ==='
+          grep -nE -A18 -B6 'counterexample_conjecture59|conjecture59_false|depends on axioms|Lean\.ofReduceBool|Lean\.trustCompiler|sorryAx|Forbidden|EXIT_STATUS' lean-ci.log || tail -n 200 lean-ci.log
