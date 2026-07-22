@@ -105,13 +105,17 @@ private lemma counterG_degreeSequence :
     ((Finset.univ.val.map fun v => counterG.degree v).sort (· ≥ ·)) =
       [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] := by
   simp_rw [counterG_degree_eq_expected]
-  decide +kernel
+  norm_num [Fin.univ_succ, expectedDegree, List.mergeSort, List.merge,
+    List.MergeSort.Internal.splitInTwo]
 
 /-- Kernel-reduced exact Havel--Hakimi residue certificate. -/
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
 private lemma counterG_residue : residue counterG = 10 := by
   unfold residue
   rw [counterG_degreeSequence]
-  decide +kernel
+  norm_num [residueAux, havelHakimiStep, List.mergeSort, List.merge,
+    List.MergeSort.Internal.splitInTwo]
 
 private lemma counterG_b_ge : (17 : ℝ) ≤ counterG.b := by
   unfold b
