@@ -17,7 +17,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api repos/akakabrian/WOW-59/actions/artifacts/8522410322/zip > wow59-log.zip
+          gh api repos/akakabrian/WOW-59/actions/artifacts/8522810537/zip > wow59-log.zip
           unzip -p wow59-log.zip lean-ci.log > lean-ci.log
           echo '=== LEAN DIAGNOSTICS ==='
           grep -nE -A14 -B5 'error:|Tactic `decide` failed|unsolved goals|failed to synthesize|type mismatch|unknown identifier|linarith failed|declaration uses|warning:|EXIT_STATUS|Lean\.ofReduceBool|Lean\.trustCompiler|sorryAx' lean-ci.log || tail -n 140 lean-ci.log
