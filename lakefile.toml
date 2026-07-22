@@ -1,0 +1,12 @@
+name = "wow_59_counterexample"
+version = "0.1.0"
+defaultTargets = ["WOW59"]
+
+# Exact upstream commit used for the authoritative Conjecture 59 statement.
+[[require]]
+name = "formal_conjectures"
+git = "https://github.com/google-deepmind/formal-conjectures.git"
+rev = "e923379e609b9d5987011a1d1f06ec22ea25cd20"
+
+[[lean_lib]]
+name = "WOW59"
