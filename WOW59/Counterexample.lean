@@ -99,62 +99,95 @@ private lemma counterG_degree_eq_expected (v : Fin 18) :
     counterG.degree v = expectedDegree v := by
   fin_cases v <;> decide
 
-set_option maxHeartbeats 0 in
-set_option maxRecDepth 100000 in
+/-- The degree multiset before sorting. -/
+private lemma expectedDegreeMultiset :
+    Finset.univ.val.map expectedDegree =
+      (↑([3, 5, 6, 6, 6, 4, 5, 5, 6, 6, 1, 1, 1, 1, 1, 1, 1, 17] : List ℕ) :
+        Multiset ℕ) := by
+  norm_num [Fin.univ_succ, expectedDegree]
+
 private lemma counterG_degreeSequence :
     ((Finset.univ.val.map fun v => counterG.degree v).sort (· ≥ ·)) =
       [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] := by
   simp_rw [counterG_degree_eq_expected]
-  norm_num [Fin.univ_succ, expectedDegree, Multiset.coe_sort,
-    List.mergeSort_eq_insertionSort, List.insertionSort, List.orderedInsert]
+  rw [expectedDegreeMultiset]
+  change List.mergeSort [3, 5, 6, 6, 6, 4, 5, 5, 6, 6, 1, 1, 1, 1, 1, 1, 1, 17]
+      (fun x y => decide (x ≥ y)) =
+    [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep0 :
     havelHakimiStep [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] =
       [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep1 :
     havelHakimiStep [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0] =
       [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [4, 4, 4, 4, 3, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep2 :
     havelHakimiStep [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] =
       [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [3, 3, 3, 3, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep3 :
     havelHakimiStep [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] =
       [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [2, 2, 2, 2, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep4 :
     havelHakimiStep [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0] =
       [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [2, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep5 :
     havelHakimiStep [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0] =
       [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [1, 1, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep6 :
     havelHakimiStep [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0] =
       [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 private lemma hhStep7 :
     havelHakimiStep [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] =
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] := by
-  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
-    List.insertionSort, List.orderedInsert]
+  change List.mergeSort [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      (fun x y => decide (x ≥ y)) =
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  rw [List.mergeSort_eq_insertionSort]
+  rfl
 
 /-- Exact Havel--Hakimi residue certificate, expanded into eight verified transitions. -/
 private lemma counterG_residue : residue counterG = 10 := by
