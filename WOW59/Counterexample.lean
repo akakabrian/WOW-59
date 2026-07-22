@@ -142,21 +142,144 @@ private lemma isCycle_quad {α : Type*} {G : SimpleGraph α} {a b c d : α}
   · simp [SimpleGraph.Walk.edges]
     tauto
 
-/-- Exhaustive finite certificate, reduced by the Lean kernel rather than the native compiler. -/
+/-- Embed the ten-vertex bipartite core into the full graph. -/
+private def coreEmbed : Fin 10 ↪ Fin 18 where
+  toFun v := ⟨v.val, by omega⟩
+  inj' := by
+    intro u v h
+    apply Fin.ext
+    simpa using congrArg Fin.val h
+
+private def selectedCore (s : Finset (Fin 18)) : Finset (Fin 10) :=
+  Finset.univ.filter fun v => coreEmbed v ∈ s
+
+private def coreAdj (u v : Fin 10) : Prop :=
+  counterG.Adj (coreEmbed u) (coreEmbed v)
+
+/-- Vertices `10,...,17`. -/
+private def upperVertices : Finset (Fin 18) :=
+  Finset.univ.filter fun v => 10 ≤ v.val
+
+/-- Vertices `10,...,16`. -/
+private def leaves : Finset (Fin 18) :=
+  Finset.univ.filter fun v => 10 ≤ v.val ∧ v.val < 17
+
+private lemma upperVertices_card : upperVertices.card = 8 := by
+  decide
+
+private lemma leaves_card : leaves.card = 7 := by
+  decide
+
+private lemma selected_subset_core_union_upper (s : Finset (Fin 18)) :
+    s ⊆ (selectedCore s).map coreEmbed ∪ upperVertices := by
+  intro v hv
+  by_cases hv10 : v.val < 10
+  · left
+    let u : Fin 10 := ⟨v.val, hv10⟩
+    have heq : coreEmbed u = v := by
+      apply Fin.ext
+      rfl
+    have hu : u ∈ selectedCore s := by
+      simp [selectedCore, heq, hv]
+    exact Finset.mem_map.mpr ⟨u, hu, heq⟩
+  · right
+    simp [upperVertices, Nat.le_of_not_gt hv10]
+
+private lemma selected_subset_core_union_leaves (s : Finset (Fin 18))
+    (hc : (17 : Fin 18) ∉ s) :
+    s ⊆ (selectedCore s).map coreEmbed ∪ leaves := by
+  intro v hv
+  by_cases hv10 : v.val < 10
+  · left
+    let u : Fin 10 := ⟨v.val, hv10⟩
+    have heq : coreEmbed u = v := by
+      apply Fin.ext
+      rfl
+    have hu : u ∈ selectedCore s := by
+      simp [selectedCore, heq, hv]
+    exact Finset.mem_map.mpr ⟨u, hu, heq⟩
+  · right
+    have hv_ne_center : v ≠ (17 : Fin 18) := by
+      intro h
+      subst v
+      exact hc hv
+    have hv_val_ne : v.val ≠ 17 := by
+      intro h
+      apply hv_ne_center
+      apply Fin.ext
+      simpa using h
+    have hv17 : v.val < 17 := by omega
+    simp [leaves, Nat.le_of_not_gt hv10, hv17]
+
+/-- Any six selected vertices of the ten-vertex core contain an edge. -/
+private lemma six_core_has_edge :
+    ∀ t : Finset (Fin 10), 6 ≤ t.card →
+      ∃ u ∈ t, ∃ v ∈ t, u ≠ v ∧ coreAdj u v := by
+  decide +kernel
+
+/-- Any seven selected vertices of the ten-vertex core contain a 4-cycle. -/
+private lemma seven_core_has_quad :
+    ∀ t : Finset (Fin 10), 7 ≤ t.card →
+      ∃ a ∈ t, ∃ b ∈ t, ∃ c ∈ t, ∃ d ∈ t,
+        a ≠ b ∧ b ≠ c ∧ c ≠ d ∧ d ≠ a ∧ a ≠ c ∧ b ≠ d ∧
+          coreAdj a b ∧ coreAdj b c ∧ coreAdj c d ∧ coreAdj d a := by
+  decide +kernel
+
 private lemma large_with_center_has_edge :
     ∀ s : Finset (Fin 18), (17 : Fin 18) ∈ s → 14 ≤ s.card →
       ∃ u ∈ s, ∃ v ∈ s,
         u ≠ v ∧ u ≠ 17 ∧ v ≠ 17 ∧ counterG.Adj u v := by
-  decide +kernel
+  intro s _hc hs14
+  have ht6 : 6 ≤ (selectedCore s).card := by
+    have hcard := Finset.card_le_card (selected_subset_core_union_upper s)
+    have hunion :=
+      Finset.card_union_le ((selectedCore s).map coreEmbed) upperVertices
+    rw [Finset.card_map, upperVertices_card] at hunion
+    omega
+  obtain ⟨u, hu, v, hv, huv, hadj⟩ := six_core_has_edge (selectedCore s) ht6
+  have huS : coreEmbed u ∈ s := by simpa [selectedCore] using hu
+  have hvS : coreEmbed v ∈ s := by simpa [selectedCore] using hv
+  refine ⟨coreEmbed u, huS, coreEmbed v, hvS, ?_, ?_, ?_, ?_⟩
+  · exact fun h => huv (coreEmbed.injective h)
+  · intro h
+    have := congrArg Fin.val h
+    omega
+  · intro h
+    have := congrArg Fin.val h
+    omega
+  · simpa [coreAdj] using hadj
 
-/-- Exhaustive finite certificate, reduced by the Lean kernel rather than the native compiler. -/
 private lemma large_without_center_has_quad :
     ∀ s : Finset (Fin 18), (17 : Fin 18) ∉ s → 14 ≤ s.card →
       ∃ a ∈ s, ∃ b ∈ s, ∃ c ∈ s, ∃ d ∈ s,
         a ≠ b ∧ b ≠ c ∧ c ≠ d ∧ d ≠ a ∧ a ≠ c ∧ b ≠ d ∧
           counterG.Adj a b ∧ counterG.Adj b c ∧
           counterG.Adj c d ∧ counterG.Adj d a := by
-  decide +kernel
+  intro s hc hs14
+  have ht7 : 7 ≤ (selectedCore s).card := by
+    have hcard := Finset.card_le_card (selected_subset_core_union_leaves s hc)
+    have hunion := Finset.card_union_le ((selectedCore s).map coreEmbed) leaves
+    rw [Finset.card_map, leaves_card] at hunion
+    omega
+  obtain ⟨a, ha, b, hb, c, hc', d, hd,
+      hab_ne, hbc_ne, hcd_ne, hda_ne, hac_ne, hbd_ne,
+      hab, hbc, hcd, hda⟩ := seven_core_has_quad (selectedCore s) ht7
+  have haS : coreEmbed a ∈ s := by simpa [selectedCore] using ha
+  have hbS : coreEmbed b ∈ s := by simpa [selectedCore] using hb
+  have hcS : coreEmbed c ∈ s := by simpa [selectedCore] using hc'
+  have hdS : coreEmbed d ∈ s := by simpa [selectedCore] using hd
+  refine ⟨coreEmbed a, haS, coreEmbed b, hbS, coreEmbed c, hcS,
+    coreEmbed d, hdS, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · exact fun h => hab_ne (coreEmbed.injective h)
+  · exact fun h => hbc_ne (coreEmbed.injective h)
+  · exact fun h => hcd_ne (coreEmbed.injective h)
+  · exact fun h => hda_ne (coreEmbed.injective h)
+  · exact fun h => hac_ne (coreEmbed.injective h)
+  · exact fun h => hbd_ne (coreEmbed.injective h)
+  · simpa [coreAdj] using hab
+  · simpa [coreAdj] using hbc
+  · simpa [coreAdj] using hcd
+  · simpa [coreAdj] using hda
 
 private lemma counterG_forest_le : counterG.largestInducedForestSize ≤ 13 := by
   apply csSup_le
