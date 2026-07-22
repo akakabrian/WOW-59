@@ -1,0 +1,21 @@
+name: Report WOWII 59 compiler log
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and print completed Lean artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/akakabrian/WOW-59/actions/artifacts/8521432772/zip > wow59-log.zip
+          unzip -p wow59-log.zip lean-ci.log
