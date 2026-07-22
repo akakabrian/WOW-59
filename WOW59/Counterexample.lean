@@ -105,17 +105,86 @@ private lemma counterG_degreeSequence :
     ((Finset.univ.val.map fun v => counterG.degree v).sort (· ≥ ·)) =
       [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] := by
   simp_rw [counterG_degree_eq_expected]
-  norm_num [Fin.univ_succ, expectedDegree, List.mergeSort, List.merge,
-    List.MergeSort.Internal.splitInTwo]
+  norm_num [Fin.univ_succ, expectedDegree, Multiset.coe_sort,
+    List.mergeSort_eq_insertionSort, List.insertionSort, List.orderedInsert]
 
-/-- Kernel-reduced exact Havel--Hakimi residue certificate. -/
-set_option maxHeartbeats 0 in
-set_option maxRecDepth 100000 in
+private lemma hhStep0 :
+    havelHakimiStep [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] =
+      [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep1 :
+    havelHakimiStep [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0] =
+      [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep2 :
+    havelHakimiStep [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] =
+      [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep3 :
+    havelHakimiStep [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0] =
+      [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep4 :
+    havelHakimiStep [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0] =
+      [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep5 :
+    havelHakimiStep [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0] =
+      [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep6 :
+    havelHakimiStep [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0] =
+      [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+private lemma hhStep7 :
+    havelHakimiStep [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] =
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] := by
+  norm_num [havelHakimiStep, List.mergeSort_eq_insertionSort,
+    List.insertionSort, List.orderedInsert]
+
+/-- Exact Havel--Hakimi residue certificate, expanded into eight verified transitions. -/
 private lemma counterG_residue : residue counterG = 10 := by
   unfold residue
   rw [counterG_degreeSequence]
-  norm_num [residueAux, havelHakimiStep, List.mergeSort, List.merge,
-    List.MergeSort.Internal.splitInTwo]
+  change residueAux (havelHakimiStep
+    [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1]) = 10
+  rw [hhStep0]
+  change residueAux (havelHakimiStep
+    [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep1]
+  change residueAux (havelHakimiStep
+    [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep2]
+  change residueAux (havelHakimiStep
+    [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep3]
+  change residueAux (havelHakimiStep
+    [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep4]
+  change residueAux (havelHakimiStep
+    [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep5]
+  change residueAux (havelHakimiStep
+    [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep6]
+  change residueAux (havelHakimiStep
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]) = 10
+  rw [hhStep7]
+  rfl
 
 private lemma counterG_b_ge : (17 : ℝ) ≤ counterG.b := by
   unfold b
