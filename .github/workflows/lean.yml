@@ -38,15 +38,22 @@ jobs:
         shell: bash
         run: |
           set +e
+          status=0
           {
             echo '$ lake build WOW59.Counterexample'
-            lake build WOW59.Counterexample
+            lake build WOW59.Counterexample || status=1
             echo '$ lake env lean -DwarningAsError=true WOW59Check.lean'
-            lake env lean -DwarningAsError=true WOW59Check.lean
+            lake env lean -DwarningAsError=true WOW59Check.lean || status=1
             echo '$ source hygiene'
-            ! grep -RInE '\b(sorry|admit|axiom|unsafe|native_decide)\b|decide[[:space:]]*\+native|Lean\.ofReduceBool|Lean\.trustCompiler' WOW59/Counterexample.lean
+            if grep -RInE '\b(sorry|admit|axiom|unsafe|native_decide)\b|decide[[:space:]]*\+native|Lean\.ofReduceBool|Lean\.trustCompiler' WOW59/Counterexample.lean; then
+              echo 'Forbidden source construct found.'
+              status=1
+            fi
           } > lean-ci.log 2>&1
-          status=$?
+          if grep -Eq 'Lean\.ofReduceBool|Lean\.trustCompiler|sorryAx' lean-ci.log; then
+            echo 'Forbidden axiom dependency found in theorem audit.' >> lean-ci.log
+            status=1
+          fi
           printf '\nEXIT_STATUS=%s\n' "$status" >> lean-ci.log
           echo "exit_status=$status" >> "$GITHUB_OUTPUT"
           exit 0
