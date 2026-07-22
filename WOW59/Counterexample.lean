@@ -174,7 +174,7 @@ private lemma selected_subset_core_union_upper (s : Finset (Fin 18)) :
     s ⊆ (selectedCore s).map coreEmbed ∪ upperVertices := by
   intro v hv
   by_cases hv10 : v.val < 10
-  · left
+  · apply Finset.mem_union_left upperVertices
     let u : Fin 10 := ⟨v.val, hv10⟩
     have heq : coreEmbed u = v := by
       apply Fin.ext
@@ -182,7 +182,7 @@ private lemma selected_subset_core_union_upper (s : Finset (Fin 18)) :
     have hu : u ∈ selectedCore s := by
       simp [selectedCore, heq, hv]
     exact Finset.mem_map.mpr ⟨u, hu, heq⟩
-  · right
+  · apply Finset.mem_union_right ((selectedCore s).map coreEmbed)
     simp [upperVertices, Nat.le_of_not_gt hv10]
 
 private lemma selected_subset_core_union_leaves (s : Finset (Fin 18))
@@ -190,7 +190,7 @@ private lemma selected_subset_core_union_leaves (s : Finset (Fin 18))
     s ⊆ (selectedCore s).map coreEmbed ∪ leaves := by
   intro v hv
   by_cases hv10 : v.val < 10
-  · left
+  · apply Finset.mem_union_left leaves
     let u : Fin 10 := ⟨v.val, hv10⟩
     have heq : coreEmbed u = v := by
       apply Fin.ext
@@ -198,7 +198,7 @@ private lemma selected_subset_core_union_leaves (s : Finset (Fin 18))
     have hu : u ∈ selectedCore s := by
       simp [selectedCore, heq, hv]
     exact Finset.mem_map.mpr ⟨u, hu, heq⟩
-  · right
+  · apply Finset.mem_union_right ((selectedCore s).map coreEmbed)
     have hv_ne_center : v ≠ (17 : Fin 18) := by
       intro h
       subst v
@@ -208,15 +208,20 @@ private lemma selected_subset_core_union_leaves (s : Finset (Fin 18))
       apply hv_ne_center
       apply Fin.ext
       simpa using h
+    have hv_lt18 : v.val < 18 := v.isLt
     have hv17 : v.val < 17 := by omega
     simp [leaves, Nat.le_of_not_gt hv10, hv17]
 
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
 /-- Any six selected vertices of the ten-vertex core contain an edge. -/
 private lemma six_core_has_edge :
     ∀ t : Finset (Fin 10), 6 ≤ t.card →
       ∃ u ∈ t, ∃ v ∈ t, u ≠ v ∧ coreAdj u v := by
   decide +kernel
 
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
 /-- Any seven selected vertices of the ten-vertex core contain a 4-cycle. -/
 private lemma seven_core_has_quad :
     ∀ t : Finset (Fin 10), 7 ≤ t.card →
@@ -242,10 +247,12 @@ private lemma large_with_center_has_edge :
   refine ⟨coreEmbed u, huS, coreEmbed v, hvS, ?_, ?_, ?_, ?_⟩
   · exact fun h => huv (coreEmbed.injective h)
   · intro h
-    have := congrArg Fin.val h
+    have hval : u.val = 17 := by simpa [coreEmbed] using congrArg Fin.val h
+    have hlt : u.val < 10 := u.isLt
     omega
   · intro h
-    have := congrArg Fin.val h
+    have hval : v.val = 17 := by simpa [coreEmbed] using congrArg Fin.val h
+    have hlt : v.val < 10 := v.isLt
     omega
   · simpa [coreAdj] using hadj
 
