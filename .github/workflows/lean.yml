@@ -1,0 +1,63 @@
+name: Verify WOWII 59 counterexample
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wow59-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v1.4.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve dependencies
+        run: lake update
+
+      - name: Download Mathlib cache
+        run: lake exe cache get
+
+      - name: Kernel-check certificate
+        id: verify
+        shell: bash
+        run: |
+          set +e
+          {
+            echo '$ lake build WOW59.Counterexample'
+            lake build WOW59.Counterexample
+            echo '$ lake env lean -DwarningAsError=true WOW59Check.lean'
+            lake env lean -DwarningAsError=true WOW59Check.lean
+            echo '$ source hygiene'
+            ! grep -RInE '\b(sorry|admit|axiom|unsafe)\b' WOW59/Counterexample.lean
+          } > lean-ci.log 2>&1
+          status=$?
+          printf '\nEXIT_STATUS=%s\n' "$status" >> lean-ci.log
+          echo "exit_status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload compiler log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wow59-lean-ci-log-${{ github.run_id }}
+          path: lean-ci.log
+
+      - name: Fail job when Lean failed
+        if: steps.verify.outputs.exit_status != '0'
+        run: exit 1
