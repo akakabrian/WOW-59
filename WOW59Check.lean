@@ -1,6 +1,6 @@
 import WOW59.Counterexample
 
--- Exact theorem and axiom audit for the patched Fin 18 counterexample certificate.
+-- Exact theorem and axiom audit for the final patched Fin 18 counterexample certificate.
 #print WrittenOnTheWallII.GraphConjecture59Counterexample.counterexample_conjecture59
 #print WrittenOnTheWallII.GraphConjecture59Counterexample.conjecture59_false
 #print axioms WrittenOnTheWallII.GraphConjecture59Counterexample.counterexample_conjecture59
