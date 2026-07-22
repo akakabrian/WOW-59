@@ -58,6 +58,10 @@ jobs:
           echo "exit_status=$status" >> "$GITHUB_OUTPUT"
           exit 0
 
+      - name: Print compiler log
+        if: always()
+        run: cat lean-ci.log
+
       - name: Upload compiler log
         if: always()
         uses: actions/upload-artifact@v4
