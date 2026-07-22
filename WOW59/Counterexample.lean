@@ -72,9 +72,45 @@ private lemma counterG_connected : counterG.Connected := by
   exact (counterG_reachable_from_center u).symm.trans
     (counterG_reachable_from_center v)
 
+/-- The expected degree of each labelled vertex in the explicit graph. -/
+private def expectedDegree (v : Fin 18) : ℕ :=
+  if v.val = 0 then 3
+  else if v.val = 1 then 5
+  else if v.val = 2 then 6
+  else if v.val = 3 then 6
+  else if v.val = 4 then 6
+  else if v.val = 5 then 4
+  else if v.val = 6 then 5
+  else if v.val = 7 then 5
+  else if v.val = 8 then 6
+  else if v.val = 9 then 6
+  else if v.val = 10 then 1
+  else if v.val = 11 then 1
+  else if v.val = 12 then 1
+  else if v.val = 13 then 1
+  else if v.val = 14 then 1
+  else if v.val = 15 then 1
+  else if v.val = 16 then 1
+  else 17
+
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
+private lemma counterG_degree_eq_expected (v : Fin 18) :
+    counterG.degree v = expectedDegree v := by
+  fin_cases v <;> decide
+
+set_option maxHeartbeats 0 in
+set_option maxRecDepth 100000 in
+private lemma counterG_degreeSequence :
+    ((Finset.univ.val.map fun v => counterG.degree v).sort (· ≥ ·)) =
+      [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] := by
+  simp_rw [counterG_degree_eq_expected]
+  decide +kernel
+
 /-- Kernel-reduced exact Havel--Hakimi residue certificate. -/
 private lemma counterG_residue : residue counterG = 10 := by
   unfold residue
+  rw [counterG_degreeSequence]
   decide +kernel
 
 private lemma counterG_b_ge : (17 : ℝ) ≤ counterG.b := by
@@ -96,10 +132,14 @@ private lemma counterG_b_ge : (17 : ℝ) ≤ counterG.b := by
     rcases hadj'.2 with hu17 | hv17 | huv | hvu
     · exact (hu_ne_center (Fin.ext hu17)).elim
     · exact (hv_ne_center (Fin.ext hv17)).elim
-    · have hv5 : ¬v.val < 5 := by omega
-      simp [huv.1, hv5]
-    · have hu5 : ¬u.val < 5 := by omega
-      simp [hvu.1, hu5]
+    · unfold coreForward at huv
+      rcases huv with ⟨hu5, hv5, _hv10, _hdeleted⟩
+      have hvNot5 : ¬v.val < 5 := Nat.not_lt.mpr hv5
+      simp [hu5, hvNot5]
+    · unfold coreForward at hvu
+      rcases hvu with ⟨hv5, hu5, _hu10, _hdeleted⟩
+      have huNot5 : ¬u.val < 5 := Nat.not_lt.mpr hu5
+      simp [hv5, huNot5]
 
 private lemma isCycle_triangle {α : Type*} {G : SimpleGraph α} {u v w : α}
     (huv : G.Adj u v) (hvw : G.Adj v w) (hwu : G.Adj w u)
@@ -155,6 +195,10 @@ private def selectedCore (s : Finset (Fin 18)) : Finset (Fin 10) :=
 
 private def coreAdj (u v : Fin 10) : Prop :=
   counterG.Adj (coreEmbed u) (coreEmbed v)
+
+private instance coreAdj_decidable : DecidableRel coreAdj := fun u v => by
+  unfold coreAdj counterG coreEmbed coreForward
+  infer_instance
 
 /-- Vertices `10,...,17`. -/
 private def upperVertices : Finset (Fin 18) :=
@@ -344,7 +388,10 @@ theorem counterexample_conjecture59 :
   have hprod :
       (169 : ℝ) < (residue counterG : ℝ) * b counterG := by
     rw [counterG_residue]
-    nlinarith [counterG_b_ge]
+    calc
+      (169 : ℝ) < 10 * 17 := by norm_num
+      _ ≤ 10 * counterG.b :=
+        mul_le_mul_of_nonneg_left counterG_b_ge (by norm_num)
   have hsqrt :
       (13 : ℝ) < Real.sqrt ((residue counterG : ℝ) * b counterG) := by
     calc
@@ -359,6 +406,7 @@ theorem counterexample_conjecture59 :
     exact_mod_cast counterG_forest_le
   linarith
 
+/-- Written on the Wall II Conjecture 59 is false, witnessed by `counterG`. -/
 @[category research solved, AMS 5]
 theorem conjecture59_false : answer(False) ↔
     ∀ (α : Type) [Fintype α] [DecidableEq α] [Nontrivial α]
