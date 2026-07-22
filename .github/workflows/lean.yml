@@ -44,7 +44,7 @@ jobs:
             echo '$ lake env lean -DwarningAsError=true WOW59Check.lean'
             lake env lean -DwarningAsError=true WOW59Check.lean
             echo '$ source hygiene'
-            ! grep -RInE '\b(sorry|admit|axiom|unsafe)\b' WOW59/Counterexample.lean
+            ! grep -RInE '\b(sorry|admit|axiom|unsafe|native_decide)\b|decide[[:space:]]*\+native|Lean\.ofReduceBool|Lean\.trustCompiler' WOW59/Counterexample.lean
           } > lean-ci.log 2>&1
           status=$?
           printf '\nEXIT_STATUS=%s\n' "$status" >> lean-ci.log
