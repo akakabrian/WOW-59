@@ -104,8 +104,8 @@ private lemma expectedDegreeMultiset :
     Finset.univ.val.map expectedDegree =
       (↑([3, 5, 6, 6, 6, 4, 5, 5, 6, 6, 1, 1, 1, 1, 1, 1, 1, 17] : List ℕ) :
         Multiset ℕ) := by
-  norm_num [Fin.univ_succ, expectedDegree]
-
+  rw [Fin.univ_val_map]
+  norm_num [List.ofFn_succ, expectedDegree]
 private lemma counterG_degreeSequence :
     ((Finset.univ.val.map fun v => counterG.degree v).sort (· ≥ ·)) =
       [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1] := by
@@ -193,32 +193,10 @@ private lemma hhStep7 :
 private lemma counterG_residue : residue counterG = 10 := by
   unfold residue
   rw [counterG_degreeSequence]
-  change residueAux (havelHakimiStep
-    [17, 6, 6, 6, 6, 6, 5, 5, 5, 4, 3, 1, 1, 1, 1, 1, 1, 1]) = 10
-  rw [hhStep0]
-  change residueAux (havelHakimiStep
-    [5, 5, 5, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep1]
-  change residueAux (havelHakimiStep
-    [4, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep2]
-  change residueAux (havelHakimiStep
-    [4, 3, 3, 3, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep3]
-  change residueAux (havelHakimiStep
-    [3, 3, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep4]
-  change residueAux (havelHakimiStep
-    [2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep5]
-  change residueAux (havelHakimiStep
-    [2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep6]
-  change residueAux (havelHakimiStep
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]) = 10
-  rw [hhStep7]
-  rfl
-
+  rw [residueAux, hhStep0, residueAux, hhStep1, residueAux, hhStep2,
+    residueAux, hhStep3, residueAux, hhStep4, residueAux, hhStep5,
+    residueAux, hhStep6, residueAux, hhStep7, residueAux]
+  norm_num
 private lemma counterG_b_ge : (17 : ℝ) ≤ counterG.b := by
   unfold b
   suffices h : 17 ≤ largestInducedBipartiteSubgraphSize counterG by
