@@ -1,0 +1,66 @@
+name: Apply WOWII 59 residue patch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/kernel-check
+          fetch-depth: 0
+
+      - name: Apply the two remaining Lean fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('WOW59/Counterexample.lean')
+          text = path.read_text()
+
+          degree_start = text.index('/-- The degree multiset before sorting. -/')
+          degree_end = text.index('\nprivate lemma counterG_degreeSequence', degree_start)
+          degree_block = '''/-- The degree multiset before sorting. -/
+          private lemma expectedDegreeMultiset :
+              Finset.univ.val.map expectedDegree =
+                (↑([3, 5, 6, 6, 6, 4, 5, 5, 6, 6, 1, 1, 1, 1, 1, 1, 1, 17] : List ℕ) :
+                  Multiset ℕ) := by
+            rw [Fin.univ_val_map]
+            norm_num [List.ofFn_succ, expectedDegree]
+          '''
+          degree_block = '\n'.join(line[10:] if line.startswith('          ') else line for line in degree_block.splitlines())
+          text = text[:degree_start] + degree_block + text[degree_end:]
+
+          residue_start = text.index('/-- Exact Havel--Hakimi residue certificate')
+          residue_end = text.index('\nprivate lemma counterG_b_ge', residue_start)
+          residue_block = '''/-- Exact Havel--Hakimi residue certificate, expanded into eight verified transitions. -/
+          private lemma counterG_residue : residue counterG = 10 := by
+            unfold residue
+            rw [counterG_degreeSequence]
+            rw [residueAux, hhStep0, residueAux, hhStep1, residueAux, hhStep2,
+              residueAux, hhStep3, residueAux, hhStep4, residueAux, hhStep5,
+              residueAux, hhStep6, residueAux, hhStep7, residueAux]
+            norm_num
+          '''
+          residue_block = '\n'.join(line[10:] if line.startswith('          ') else line for line in residue_block.splitlines())
+          text = text[:residue_start] + residue_block + text[residue_end:]
+
+          path.write_text(text)
+          PY
+
+      - name: Commit the residue patch
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add WOW59/Counterexample.lean
+          git diff --cached --check
+          git commit -m "Fix concrete WOWII 59 residue proof" || exit 0
+          git push origin HEAD:agent/kernel-check
